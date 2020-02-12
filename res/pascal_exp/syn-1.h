@@ -1,0 +1,19 @@
+#pragma once
+#include "lex.h"
+#include "erreur.h"
+void PROGRAM();
+void Test_Symbole(CODES_LEX code, CODES_ERR COD_ERR);
+void BLOCK();
+void CONSTS();
+void VARS();
+void INSTS();
+void INST();
+void COND();
+void SI();
+void TANTQUE();
+void LIRE();
+void ECRIRE();
+void AFFEC();
+void EXPR();
+void TERM();
+void FACT();
