@@ -3,6 +3,7 @@
 #include <stdio.h>
 
 typedef enum {
+	REPEAT_TOKEN,
 	FIN_TOKEN,
 	IF_TOKEN,
 	ELSE_TOKEN,
