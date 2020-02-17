@@ -11,7 +11,7 @@ int main()
 	{
 		lire_sym();
 		
-		printf("%s\n", getCodeName(sym_cour.code));
+		if (sym_cour.code != ENTRER_TOKEN) printf("%s\n", getCodeName(sym_cour.code));
 	}
 	return 0;
 }

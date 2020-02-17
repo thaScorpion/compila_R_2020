@@ -10,7 +10,7 @@ FILE* fichier;
 
 void debut() {
 	getNextChar();
-	while (car_cour == ' ' || car_cour == '\n' || car_cour == '\t')
+	while (car_cour == ' ' || car_cour == '\t')
 		getNextChar();
 	if (car_cour == EOF)
 		Erreur(ERR_FICH_VID);
@@ -24,7 +24,7 @@ void getNextChar()
 void lire_sym() {
 
 	//ignorer separateurs
-	while (car_cour == ' ' || car_cour == '\n' || car_cour == '\t')
+	while (car_cour == ' ' || car_cour == '\t')
 		getNextChar();
 
 	if (car_cour == '#') {
@@ -35,8 +35,10 @@ void lire_sym() {
 		lire_chaine();
 		sym_cour.code = CHAINE_TOKEN;
 	}
+
+	
 	// on lit les mots qui commence par une lettre ou une '_' et qui comporte juste le chiffres , les lettres et les '_' 
-	else if ((car_cour >= 'a' && car_cour <= 'z') || (car_cour >= 'A' && car_cour <= 'Z') || car_cour == '_' || car_cour == '.') {
+	else if ((car_cour >= 'a' && car_cour <= 'z') || (car_cour >= 'A' && car_cour <= 'Z') || car_cour == '_') {
 		lire_mot();
 		if (!strcmp(sym_cour.nom, "if"))
 			sym_cour.code = IF_TOKEN;
@@ -136,8 +138,6 @@ void lire_sym() {
 			sym_cour.code = BY_TOKEN;
 		else if (!strcmp(sym_cour.nom, "table"))
 			sym_cour.code = TABLE_TOKEN;
-		else if (!strcmp(sym_cour.nom, "seq"))
-			sym_cour.code = SEQ_TOKEN;
 		else if (!strcmp(sym_cour.nom, "nchar"))
 			sym_cour.code = NCHAR_TOKEN;
 		else if (!strcmp(sym_cour.nom, "setwd"))
@@ -184,6 +184,7 @@ void lire_sym() {
 			sym_cour.code = DIM_TOKEN;
 		else if (!strcmp(sym_cour.nom, "head"))
 			sym_cour.code = HEAD_TOKEN;
+
 		else if (!strcmp(sym_cour.nom, "paste"))
 			sym_cour.code = PASTE_TOKEN;
 		else if (!strcmp(sym_cour.nom, "class"))
@@ -247,16 +248,17 @@ void lire_sym() {
 		else
 			sym_cour.code = ID_TOKEN;  // les mots qui ne sont pas reservés au langage sont des identifiants
 	}
+
+	// les operateur speciaux
+	else if (car_cour == '\n' || car_cour == '*' || car_cour == '+' || car_cour == '/' || car_cour == '-' || car_cour == ',' || car_cour == ';' || car_cour == '<' || car_cour == '>'|| car_cour == '(' || car_cour == ')' || car_cour == EOF || car_cour == ':' || car_cour == '=' || car_cour == '%'  || car_cour == '[' || car_cour == ']'  || car_cour == '\''   || car_cour == '{' || car_cour == '}' || car_cour == '!' || car_cour == '$' || car_cour == '~') {
+		lire_special();
+	}
 	// on lit un nombre qui comporte que des chiffres
 	else if (car_cour >= '0' && car_cour <= '9') {
 		lire_num();
 		sym_cour.code = NUM_TOKEN;
 	}
-	// les operateur speciaux
-	else if (car_cour == '*' || car_cour == '+' || car_cour == '/' || car_cour == '-' || car_cour == ',' || car_cour == ';' || car_cour == '.' || car_cour == '<' || car_cour == '>'
-		|| car_cour == '(' || car_cour == ')' || car_cour == EOF || car_cour == ':' || car_cour == '=' || car_cour == '%'  || car_cour == '[' || car_cour == ']'  || car_cour == '\''   || car_cour == '{' || car_cour == '}' || car_cour == '!' || car_cour == '$' || car_cour == '~') {
-		lire_special();
-	}
+		
 	// sinon c'est un caractere inconnue
 	else {
 		sym_cour.code = ERREUR_TOKEN;
@@ -267,7 +269,7 @@ void lire_sym() {
 void lire_com() {
 	getNextChar();
 	while(car_cour != '\n') getNextChar();
-	while (car_cour == ' ' || car_cour == '\n' || car_cour == '\t') getNextChar();
+	while (car_cour == ' ' || car_cour == '\t') getNextChar();
 }
 
 void lire_chaine() {
@@ -288,7 +290,7 @@ void lire_mot() {
 	sym_cour.nom[i] = car_cour;
 	getNextChar();
 	i++;
-	while ((car_cour >= 'a' && car_cour <= 'z') || (car_cour >= 'A' && car_cour <= 'Z') || (car_cour >= '0' && car_cour <= '9') || (car_cour == '_')  || (car_cour == '.')) {
+	while ((car_cour >= 'a' && car_cour <= 'z') || (car_cour >= 'A' && car_cour <= 'Z') || (car_cour >= '0' && car_cour <= '9') || (car_cour == '_')) {
 		sym_cour.nom[i] = car_cour;
 		getNextChar();
 		if (i >= 20) {
@@ -320,6 +322,12 @@ void lire_special() {
 	char suiv, suiv2;
 	sym_cour.nom[i] = car_cour;
 	switch (car_cour) {
+	case '\n':
+		sym_cour.code = ENTRER_TOKEN;
+		getNextChar();
+		i++;
+		sym_cour.nom[i] = '\0';
+		break;
 	case '*':
 		sym_cour.code = MULT_TOKEN;
 		getNextChar();
@@ -562,7 +570,6 @@ void lire_special() {
 			i++;
 			sym_cour.nom[i] = '\0';
 		}
-
 		break;
 }
 
@@ -571,6 +578,7 @@ void lire_special() {
 const char* getCodeName(CODES_LEX code) {
 	switch (code)
 	{
+		case ENTRER_TOKEN: return "ENTRER_TOKEN";
 		case FIN_TOKEN: return "FIN_TOKEN";
 		case ELSE_TOKEN: return "ELSE_TOKEN";
 		case IF_TOKEN: return "IF_TOKEN";
@@ -704,7 +712,6 @@ const char* getCodeName(CODES_LEX code) {
 		case FILE_TOKEN: return "FILE_TOKEN";
 		case RUNIF_TOKEN: return "RUNIF_TOKEN";
 		case DUNIF_TOKEN: return "DUNIF_TOKEN";
-
-		default: printf("khikhi\n"); return "salam";
+		default: return "";
 	}
 }
