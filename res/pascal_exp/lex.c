@@ -44,6 +44,8 @@ void lire_sym() {
 			sym_cour.code = IF_TOKEN;
 		else if (!strcmp(sym_cour.nom, "while"))
 			sym_cour.code = WHILE_TOKEN;
+		else if (!strcmp(sym_cour.nom, "repeat"))
+			sym_cour.code = REPEAT_TOKEN;
 		else if (!strcmp(sym_cour.nom, "read"))
 			sym_cour.code = READ_TOKEN;
 		else if (!strcmp(sym_cour.nom, "else"))
@@ -580,6 +582,7 @@ const char* getCodeName(CODES_LEX code) {
 	{
 		case ENTRER_TOKEN: return "ENTRER_TOKEN";
 		case FIN_TOKEN: return "FIN_TOKEN";
+		case REPEAT_TOKEN: return "REPEAT_TOKEN";
 		case ELSE_TOKEN: return "ELSE_TOKEN";
 		case IF_TOKEN: return "IF_TOKEN";
 		case WHILE_TOKEN: return "WHILE_TOKEN";
