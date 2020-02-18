@@ -1,8 +1,20 @@
-#include "errors.h"
+#include "Erreur.h"
+#include "lex.h"
+#include<stdlib.h>
+#include<stdio.h>
 
 void ERREUR(CODE_ERR error){
 	switch(error){
 		
+		case ERREUR_ERR:
+			printf("Erreur"); 
+			break;	
+		case ELSE_ERR:
+			printf("Erreur else"); 
+			break;
+		case ENTRER_ERR:
+			printf("Erreur ...."); 
+			break;		
 		case FIN_ERR:
 			printf("Erreur à la fin du fichier"); 
 			break;
@@ -16,7 +28,7 @@ void ERREUR(CODE_ERR error){
 			printf("Erreur à une Parenthese fermée"); 
 			break;
 		case WHILE_ERR:
-			printf("Erreur à la boucle WHILE); 
+			printf("Erreur à la boucle WHILE"); 
 			break;
 		case REPEAT_ERR:
 			printf("Erreur à REPEAT" ); 
@@ -32,9 +44,6 @@ void ERREUR(CODE_ERR error){
 			break;
 		case PO_ERR:
 			printf("Erreur à PO"); 
-			break;
-		case PF_ERR:
-			printf("Erreur à PF"); 
 			break;
 		case ID_ERR:
 			printf("Erreur de l'identifiant"); 
@@ -53,6 +62,6 @@ void ERREUR(CODE_ERR error){
 			printf("ERREUR\n");
 		
 	}
-	SYM_COUR.CODE==ERREUR_TOKEN;
+	sym_cour.code = ERREUR_TOKEN;
 	exit(0);
 }

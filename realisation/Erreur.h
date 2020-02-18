@@ -1,7 +1,6 @@
 #ifndef ERRORS_H
 #define ERRORS_H
 
-#include "global.h"
 
 typedef enum{
 	IF_ERR,
@@ -18,7 +17,10 @@ typedef enum{
 	NOT_ERR,
 	ACCO_ERR,
 	ACCF_ERR,
-	SEQ_ERR
+	SEQ_ERR,
+	ENTRER_ERR,
+	ELSE_ERR,
+	ERREUR_ERR
 
 }CODE_ERR;
 

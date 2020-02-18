@@ -3,6 +3,8 @@
 #include <stdio.h>
 
 typedef enum {
+	ENTRER_TOKEN,
+	REPEAT_TOKEN,
 	FIN_TOKEN,
 	IF_TOKEN,
 	ELSE_TOKEN,
@@ -28,7 +30,6 @@ typedef enum {
 	NUM_TOKEN,
 	CHAINE_TOKEN,
 	ERREUR_TOKEN,
-
 	PERCENT_TOKEN,
 	CROCHETO_TOKEN,
 	CROCHETF_TOKEN,
@@ -136,7 +137,7 @@ typedef enum {
 	FILE_TOKEN,
 	RUNIF_TOKEN,
 	DUNIF_TOKEN,
-
+	NOT_TOKEN,
 
 
 } CODES_LEX;
@@ -163,6 +164,3 @@ void debut();
 const char* getCodeName(CODES_LEX code);
 
 #endif // 
-
-
-

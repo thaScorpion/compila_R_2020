@@ -2,67 +2,62 @@
 #include <stdlib.h>
 #include "lex.h"
 #include "syn.h"
-#include "erreur.h"
+#include "Erreur.h"
 #include <string.h>
 
 
+int lock = 1;
 
 
-
-void Test_Symbole(CODES_LEX code, CODES_ERR COD_ERR) {
+void Test_Symbole(CODES_LEX code, CODE_ERR COD_ERR) {
 	if (sym_cour.code == code) {
 		lire_sym(); 
 	}
 	else   
-		Erreur(COD_ERR);
+		ERREUR(COD_ERR);
 }
 
 
 void INSTS() {
 		INST();
-		while (sym_cour.code == PV_TOKEN || sym_cour.code== ENTRER_TOKEN ) {
+		while (sym_cour.code == PV_TOKEN || sym_cour.code == ENTRER_TOKEN ) {
 			lire_sym();
 			INST();
 		}
-	Test_Symbole(FIN_TOKEN, END_ERR);
+	if (lock) Test_Symbole(FIN_TOKEN, FIN_ERR);
 }
 
 void INST() {
 	switch (sym_cour.code) {
+		case ID_TOKEN:
 			AFFECT1();
 			break;
-		case(IF_TOKEN):
+		case IF_TOKEN:
 				SI();
 				break;
-		case(WHILE_TOKEN):
+		case WHILE_TOKEN:
 			TANTQUE();
 			break;
-		case(REPEAT_TOKEN):
+		case REPEAT_TOKEN:
 			REPEAT();
 			break;
-		case(FOR_TOKEN):
+		case FOR_TOKEN:
 			POUR();
 			break;
-		case(WRITE_TOKEN):
+		case PRINT_TOKEN:
 			ECRIRE();
-			break;
-		case(READ_TOKEN):
-			LIRE();
 			break;
 		case ENTRER_TOKEN:
 			break;
 		case PV_TOKEN:
 			break;
-		default :
-			Erreur(INST_ERROR);
-
 	}
 	
 }
 
 void AFFECT1() {
 		Test_Symbole(ID_TOKEN,ID_ERR);
-		if ((sym_cour.code == ASSIGNO_TOKEN) || (sym_cour.code == ASSIGN2O_TOKEN) ||(sym_cour.code == EGALE_TOKEN)  ) {
+		if ((sym_cour.code == ASSIGNF_TOKEN) || (sym_cour.code == ASSIGN2F_TOKEN) ||(sym_cour.code == EGAL_TOKEN)  ) {
 			lire_sym(); 
 		}
 		EXPR();
@@ -75,19 +70,29 @@ void SI() {
 	Test_Symbole(PF_TOKEN, PF_ERR);
 	while(sym_cour.code == ENTRER_TOKEN) lire_sym();
 	switch(sym_cour.code){
-		case ACCO_TOKEN:
-			accPresence= true;
-			lire_sym(); 
+		case BRACKETO_TOKEN:
+			// accPresence= true;
+			lire_sym();
+			while(sym_cour.code == ENTRER_TOKEN) lire_sym();
+			lock = 0;
 			INSTS();
-			Test_Symbole(ACCF_TOKEN,ACCF_ERR);
-			accPresence= false;
-			if(sym_cour.code!=ENTRER_TOKEN && sym_cour.code!=ELSE_TOKEN && sym_cour.code!=FIN_TOKEN) ERREUR(ENTRER_ERR);
-				break;
+			lock = 1;
+			while(sym_cour.code == ENTRER_TOKEN) lire_sym();
+			Test_Symbole(BRACKETF_TOKEN, ACCF_ERR);
+			while(sym_cour.code == ENTRER_TOKEN) lire_sym();
+
+
+			// accPresence= false;
+			if(sym_cour.code!=ENTRER_TOKEN && sym_cour.code!=ELSE_TOKEN && sym_cour.code!=FIN_TOKEN)
+			{
+			 	ERREUR(ENTRER_ERR);
+			}
+			break;
 		default:
 			INST();
 			break;
 	}
-	if(sym_cour.code==PV_TOKEN){
+	/*if(sym_cour.code==PV_TOKEN){
 		lire_sym(); 
 		if(sym_cour.code==ELSE_TOKEN) ERREUR(ELSE_ERR);
 	}
@@ -97,20 +102,22 @@ void SI() {
 			lire_sym(); 
 		}
 		if(sym_cour.code==ELSE_TOKEN) ERREUR(ELSE_ERR);
-	}
+	}*/
 	
 	switch(sym_cour.code){
 		case ELSE_TOKEN:
 			lire_sym(); 
 			while(sym_cour.code==ENTRER_TOKEN) lire_sym(); 
 			switch(sym_cour.code){
-				case ACCO_TOKEN:
-					accPresence= true;
+				case BRACKETO_TOKEN:
+					// accPresence= true;
 					lire_sym(); 
+					lock = 0;
 					INSTS();
-					Test_Symbole(ACCF_TOKEN,ACCF_ERR);
-					accPresence= false;
-					if(sym_cour.code!=ENTRER_TOKEN && sym_cour.code!=FIN_TOKEN) ERREUR(ENTRER_ERR);
+					lock = 1;
+					Test_Symbole(BRACKETF_TOKEN,ACCF_ERR);
+					// accPresence= false;
+					// if(sym_cour.code!=ENTRER_TOKEN && sym_cour.code!=FIN_TOKEN) ERREUR(ENTRER_ERR);
 					break;
 				default:
 					INST();
@@ -130,24 +137,29 @@ void COND(){
 			break;
 		default: 
 			EXPR();
-			if(sym_cour.code == EGAL_TOKEN || sym_cour.code == DIFF_TOKEN 
+			if(sym_cour.code == DOUBLE_EGAL_TOKEN || sym_cour.code == DIFF_TOKEN 
 			|| sym_cour.code == INF_TOKEN ||sym_cour.code == SUP_TOKEN ||
-			sym_cour.code == INFG_TOKEN ||sym_cour.code == SUPG_TOKEN ) lire_sym();
+			sym_cour.code == INFEG_TOKEN ||sym_cour.code == SUPEG_TOKEN ) lire_sym();
 			EXPR();
 	}
 }
 
 void TANTQUE() {
 	Test_Symbole(WHILE_TOKEN,WHILE_ERR);
+	Test_Symbole(PO_TOKEN, PO_ERR);
 	COND();
+	Test_Symbole(PF_TOKEN, PF_ERR);
 	while(sym_cour.code==ENTRER_TOKEN) lire_sym();
 	switch(sym_cour.code){
-		case ACCO_TOKEN:
-			accPresence= true;
-			lire_sym(); 
+		case BRACKETO_TOKEN:
+			// accPresence= true;
+			lire_sym();
+
+			lock = 0;
 			INSTS();
-			Test_Symbole(ACCF_TOKEN,ACCF_ERR);
-			accPresence= false;
+			lock = 1;
+			Test_Symbole(BRACKETF_TOKEN,ACCF_ERR);
+			// accPresence= false;
 			if(sym_cour.code!=ENTRER_TOKEN && sym_cour.code!=FIN_TOKEN) ERREUR(ENTRER_ERR);
 			break;
 		default:
@@ -159,11 +171,13 @@ void TANTQUE() {
 void REPEAT() {
 	Test_Symbole(REPEAT_TOKEN,REPEAT_ERR);
 	while(sym_cour.code == ENTRER_TOKEN) lire_sym(); 
-	Test_Symbole(ACCO_TOKEN,ACCO_ERR);
-	accPresence= true;
+	Test_Symbole(BRACKETO_TOKEN,ACCO_ERR);
+	// accPresence= true;
+	lock = 0;
 	INSTS();
-	Test_Symbole(ACCF_TOKEN,ACCF_ERR);
-	accPresence= false;
+	lock = 1;
+	Test_Symbole(BRACKETF_TOKEN,ACCF_ERR);
+	// accPresence= false;
 	if(sym_cour.code!=ENTRER_TOKEN && sym_cour.code!=FIN_TOKEN) ERREUR(ENTRER_ERR);
 
 }
@@ -173,20 +187,22 @@ void POUR(){
 	Test_Symbole(PO_TOKEN,PO_ERR);
 	Test_Symbole(ID_TOKEN,ID_ERR);
 	Test_Symbole(IN_TOKEN,IN_ERR);
-	if(sym_cour.code == INT_TOKEN || sym_cour.code == FLOAT_TOKEN || sym_cour.code == ID_TOKEN) lire_sym(); 
+	if(sym_cour.code == NUM_TOKEN ) lire_sym(); 
 	else ERREUR(FOR_ERR);
 	Test_Symbole(SEQ_TOKEN,SEQ_ERR);
-	if(sym_cour.code == INT_TOKEN || sym_cour.code == FLOAT_TOKEN || sym_cour.code == ID_TOKEN) lire_sym(); 
+	if(sym_cour.code == NUM_TOKEN) lire_sym(); 
 	else ERREUR(FOR_ERR);
 	Test_Symbole(PF_TOKEN,PF_ERR);
 	while(sym_cour.code == ENTRER_TOKEN) lire_sym(); 
 	switch(sym_cour.code){
-		case ACCO_TOKEN:
-			accPresence= true;
-			Test_Symbole(ACCO_TOKEN,ACCO_ERR);
+		case BRACKETO_TOKEN:
+			// accPresence= true;
+			Test_Symbole(BRACKETO_TOKEN,ACCO_ERR);
+			lock = 0;
 			INSTS();
-			Test_Symbole(ACCF_TOKEN,ACCF_ERR);
-			accPresence= false;
+			lock = 1;
+			Test_Symbole(BRACKETF_TOKEN,ACCF_ERR);
+			// accPresence= false;
 			if(sym_cour.code!=ENTRER_TOKEN && sym_cour.code!=FIN_TOKEN) ERREUR(ENTRER_ERR);
 			break;
 		default:
@@ -196,14 +212,10 @@ void POUR(){
 }
 
 void ECRIRE() {
-	swich(sym_cour.code){
+	switch(sym_cour.code)
+	{
 		case (PRINT_TOKEN):
-			Test_Symbole(PO_TOKEN, PO_ERR);
-			EXPR();
-			Test_Symbole(PF_TOKEN, PF_ERR);
-			break;
-
-		case (CAT_TOKEN):
+			lire_sym();
 			Test_Symbole(PO_TOKEN, PO_ERR);
 			EXPR();
 			Test_Symbole(PF_TOKEN, PF_ERR);
@@ -211,25 +223,8 @@ void ECRIRE() {
 	}
 }
 
-void LIRE(){
-
-}
 
 
-
-
-void BREAK(){
-	Test_Symbole(IF_TOKEN, IF_ERR);
-	COND();
-	Test_Symbole(BREAK_TOKEN, BREAK_ERR);
-}
-
-
-void RELOP(){
-	if ((sym_cour.code == DOUBLE_EGAL_TOKEN) || (sym_cour.code == INF_TOKEN) ||(sym_cour.code == INFEG_TOKEN) ||(sym_cour.code == SUPEG_TOKEN) ||(sym_cour.code == SUP_TOKEN) ||(sym_cour.code == DIFF_TOKEN)  ) {
-		lire_sym(); 
-	}
-}
 
 void EXPR() {
 	TERM();
@@ -242,7 +237,7 @@ void EXPR() {
 void TERM() {
 	
 	FACT();
-	while (sym_cour.code == MULT_TOKEN || sym_cour.code == DIV_TOKEN || sym_cour.code==DIVENT_TOKEN || sym_cour.code==RES_TOKEN) {
+	while (sym_cour.code == MULT_TOKEN || sym_cour.code == DIV_TOKEN) {
 		lire_sym();
 		FACT();
 	}

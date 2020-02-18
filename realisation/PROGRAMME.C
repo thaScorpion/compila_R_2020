@@ -5,7 +5,7 @@
 #include <assert.h>
 
 //#include "global.h"
-#include "analyseur_syntaxique.h"
+#include "syn.h"
 
 int main(int argc, char const *argv[])
 {

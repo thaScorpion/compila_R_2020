@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "lex.h"
-#include "erreur.h"
+#include "Erreur.h"
 #include <string.h>
 
 SYM_COUR sym_cour;
@@ -10,10 +10,8 @@ FILE* fichier;
 
 void debut() {
 	getNextChar();
-	while (car_cour == ' ' || car_cour == '\n' || car_cour == '\t')
+	while (car_cour == ' ' || car_cour == '\t')
 		getNextChar();
-	if (car_cour == EOF)
-		Erreur(ERR_FICH_VID);
 }
 
 void getNextChar()
@@ -24,30 +22,32 @@ void getNextChar()
 void lire_sym() {
 
 	//ignorer separateurs
-	while (car_cour == ' ' || car_cour == '\n' || car_cour == '\t')
+	while (car_cour == ' ' || car_cour == '\t')
 		getNextChar();
 
 	if (car_cour == '#') {
 		lire_com();
 	}
 
-
 	if (car_cour == '\'') {
 		lire_chaine();
 		sym_cour.code = CHAINE_TOKEN;
 	}
 
+	
 	// on lit les mots qui commence par une lettre ou une '_' et qui comporte juste le chiffres , les lettres et les '_' 
-	else if ((car_cour >= 'a' && car_cour <= 'z') || (car_cour >= 'A' && car_cour <= 'Z') || car_cour == '_' || car_cour == '.') {
+	else if ((car_cour >= 'a' && car_cour <= 'z') || (car_cour >= 'A' && car_cour <= 'Z') || car_cour == '_') {
 		lire_mot();
 		if (!strcmp(sym_cour.nom, "if"))
 			sym_cour.code = IF_TOKEN;
 		else if (!strcmp(sym_cour.nom, "while"))
 			sym_cour.code = WHILE_TOKEN;
+		else if (!strcmp(sym_cour.nom, "repeat"))
+			sym_cour.code = REPEAT_TOKEN;
 		else if (!strcmp(sym_cour.nom, "read"))
 			sym_cour.code = READ_TOKEN;
 		else if (!strcmp(sym_cour.nom, "else"))
-			sym_cour.code = WHILE_TOKEN;
+			sym_cour.code = ELSE_TOKEN;
 		else if (!strcmp(sym_cour.nom, ".libPaths"))
 			sym_cour.code = _LIBPATHS_TOKEN;
 		else if (!strcmp(sym_cour.nom, "round"))
@@ -138,8 +138,6 @@ void lire_sym() {
 			sym_cour.code = BY_TOKEN;
 		else if (!strcmp(sym_cour.nom, "table"))
 			sym_cour.code = TABLE_TOKEN;
-		else if (!strcmp(sym_cour.nom, "seq"))
-			sym_cour.code = SEQ_TOKEN;
 		else if (!strcmp(sym_cour.nom, "nchar"))
 			sym_cour.code = NCHAR_TOKEN;
 		else if (!strcmp(sym_cour.nom, "setwd"))
@@ -186,6 +184,7 @@ void lire_sym() {
 			sym_cour.code = DIM_TOKEN;
 		else if (!strcmp(sym_cour.nom, "head"))
 			sym_cour.code = HEAD_TOKEN;
+
 		else if (!strcmp(sym_cour.nom, "paste"))
 			sym_cour.code = PASTE_TOKEN;
 		else if (!strcmp(sym_cour.nom, "class"))
@@ -246,44 +245,31 @@ void lire_sym() {
 			sym_cour.code = RUNIF_TOKEN;
 		else if (!strcmp(sym_cour.nom, "dunif"))
 			sym_cour.code = DUNIF_TOKEN;
-
-
 		else
 			sym_cour.code = ID_TOKEN;  // les mots qui ne sont pas reservés au langage sont des identifiants
 	}
 
-
-
-
+	// les operateur speciaux
+	else if (car_cour == '\n' || car_cour == '*' || car_cour == '.' || car_cour == '+' || car_cour == '/' || car_cour == '-' || car_cour == ',' || car_cour == ';' || car_cour == '<' || car_cour == '>'|| car_cour == '(' || car_cour == ')' || car_cour == EOF || car_cour == ':' || car_cour == '=' || car_cour == '%'  || car_cour == '[' || car_cour == ']'  || car_cour == '\''   || car_cour == '{' || car_cour == '}' || car_cour == '!' || car_cour == '$' || car_cour == '~') {
+		lire_special();
+	}
 	// on lit un nombre qui comporte que des chiffres
 	else if (car_cour >= '0' && car_cour <= '9') {
 		lire_num();
 		sym_cour.code = NUM_TOKEN;
-
 	}
-
-
-	// les operateur speciaux
-	else if (car_cour == '*' || car_cour == '+' || car_cour == '/' || car_cour == '-' || car_cour == ',' || car_cour == ';' || car_cour == '.' || car_cour == '<' || car_cour == '>'
-		|| car_cour == '(' || car_cour == ')' || car_cour == EOF || car_cour == ':' || car_cour == '=' || car_cour == '%'  || car_cour == '[' || car_cour == ']'  || car_cour == '\''   || car_cour == '{' || car_cour == '}' || car_cour == '!' || car_cour == '$' || car_cour == '~') {
-		lire_special();
-	}
+		
 	// sinon c'est un caractere inconnue
 	else {
 		sym_cour.code = ERREUR_TOKEN;
-		Erreur(ERR_CAR_INC);
 	}
 }
-
-
-
 
 void lire_com() {
 	getNextChar();
 	while(car_cour != '\n') getNextChar();
-	while (car_cour == ' ' || car_cour == '\n' || car_cour == '\t') getNextChar();
+	while (car_cour == ' ' || car_cour == '\t') getNextChar();
 }
-
 
 void lire_chaine() {
 	int i = 0;
@@ -293,9 +279,7 @@ void lire_chaine() {
 		getNextChar();
 	}
 	sym_cour.nom[i] = '\0';
-	if (car_cour == EOF) {
-		Erreur(ERR_CAR_INC);
-	}
+	
 }
 
 void lire_mot() {
@@ -303,19 +287,17 @@ void lire_mot() {
 	sym_cour.nom[i] = car_cour;
 	getNextChar();
 	i++;
-	while ((car_cour >= 'a' && car_cour <= 'z') || (car_cour >= 'A' && car_cour <= 'Z') || (car_cour >= '0' && car_cour <= '9') || (car_cour == '_')  || (car_cour == '.')) {
+	while ((car_cour >= 'a' && car_cour <= 'z') || (car_cour >= 'A' && car_cour <= 'Z') || (car_cour >= '0' && car_cour <= '9') || (car_cour == '_')) {
 		sym_cour.nom[i] = car_cour;
 		getNextChar();
 		if (i >= 20) {
 			sym_cour.code = ERREUR_TOKEN;
-			Erreur(ERR_ID_LONG);
 		}
 
 		i++;
 	}
 	sym_cour.nom[i] = '\0';
 }
-
 
 void lire_num() {
 	int i = 0;
@@ -331,34 +313,52 @@ void lire_num() {
 	sym_cour.val = atoi(sym_cour.nom);
 }
 
-
-
 void lire_special() {
 	int i = 0;
 	char suiv, suiv2;
 	sym_cour.nom[i] = car_cour;
 	switch (car_cour) {
+	case '.':
+		suiv = fgetc(fichier);
+		if (suiv == '.')
+		{
+			sym_cour.code = SEQ_TOKEN;
+			getNextChar();
+			i++;
+			sym_cour.nom[i] = '\0';
+		}
+		else 
+		{
+			fseek(fichier, -1, SEEK_CUR);
+			i++;
+			getNextChar();
+			sym_cour.nom[i] = '\0';
+		}
+		break;
+	case '\n':
+		sym_cour.code = ENTRER_TOKEN;
+		getNextChar();
+		i++;
+		sym_cour.nom[i] = '\0';
+		break;
 	case '*':
 		sym_cour.code = MULT_TOKEN;
 		getNextChar();
 		i++;
 		sym_cour.nom[i] = '\0';
 		break;
-
 	case '+':
 		sym_cour.code = PLUS_TOKEN;
 		i++;
 		getNextChar();
 		sym_cour.nom[i] = '\0';
 		break;
-
 	case '/':
 		sym_cour.code = DIV_TOKEN;
 		i++;
 		getNextChar();
 		sym_cour.nom[i] = '\0';
 		break;
-
 	case '-':
 		suiv = fgetc(fichier);
 		if (suiv == '>')
@@ -373,7 +373,6 @@ void lire_special() {
 			}
 			else
 			{
-				fseek(fichier, -1, SEEK_CUR);
 				sym_cour.code = ASSIGNO_TOKEN;
 				i++;
 				getNextChar();
@@ -395,14 +394,12 @@ void lire_special() {
 		getNextChar();
 		sym_cour.nom[i] = '\0';
 		break;
-
 	case ';':
 		sym_cour.code = PV_TOKEN;
 		i++;
 		getNextChar();
 		sym_cour.nom[i] = '\0';
 		break;
-
 	case '=':
 		suiv = fgetc(fichier);
 		if (suiv == '=') {
@@ -422,70 +419,60 @@ void lire_special() {
 		}
 		
 		break;
-
 	case '(':
 		sym_cour.code = PO_TOKEN;
 		i++;
 		getNextChar();
 		sym_cour.nom[i] = '\0';
 		break;
-
 	case ')':
 		sym_cour.code = PF_TOKEN;
 		i++;
 		getNextChar();
 		sym_cour.nom[i] = '\0';
 		break;
-
 	case '%':
 		sym_cour.code = PERCENT_TOKEN;
 		i++;
 		getNextChar();
 		sym_cour.nom[i] = '\0';
 		break;
-
 	case '[':
 		sym_cour.code = CROCHETO_TOKEN;
 		i++;
 		getNextChar();
 		sym_cour.nom[i] = '\0';
 		break;
-	
 	case ']':
 		sym_cour.code = CROCHETF_TOKEN;
 		i++;
 		getNextChar();
 		sym_cour.nom[i] = '\0';
 		break;
-	
 	case '\'':
 		sym_cour.code = QUOTE_TOKEN;
 		i++;
 		getNextChar();
 		sym_cour.nom[i] = '\0';
 		break;
-
 	case '{':
 		sym_cour.code = BRACKETO_TOKEN;
 		i++;
 		getNextChar();
 		sym_cour.nom[i] = '\0';
 		break;
-	
 	case '}':
 		sym_cour.code = BRACKETF_TOKEN;
 		i++;
 		getNextChar();
 		sym_cour.nom[i] = '\0';
-		break;
-	
+		break;	
 	case '$':
 		sym_cour.code = DOLLAR_TOKEN;
 		i++;
 		getNextChar();
 		sym_cour.nom[i] = '\0';
 		break;
-	
 	case '~':
 		sym_cour.code = TILD_TOKEN;
 		i++;
@@ -503,19 +490,18 @@ void lire_special() {
 		}
 		else
 		{
-			sym_cour.code = ERREUR_TOKEN;
+			fseek(fichier, -1, SEEK_CUR);
+			sym_cour.code = NOT_TOKEN;
 			i++;
 			getNextChar();
 			sym_cour.nom[i] = '\0';
 		}
 		break;
-
 	case EOF:
 		sym_cour.code = FIN_TOKEN;
 		i++;
 		sym_cour.nom[i] = '\0';
 		break;
-
 	case '<':
 		suiv = fgetc(fichier);
 		if (suiv == '<')
@@ -530,7 +516,6 @@ void lire_special() {
 			}
 			else
 			{
-				fseek(fichier, -1, SEEK_CUR);
 				sym_cour.code = ERREUR_TOKEN;
 				i++;
 				getNextChar();
@@ -560,7 +545,6 @@ void lire_special() {
 			sym_cour.nom[i] = '\0';
 		}
 		break;
-
 	case '>':
 		suiv = fgetc(fichier);
 		if (suiv == '=') {
@@ -581,7 +565,6 @@ void lire_special() {
 		}
 
 		break;
-
 	case ':':
 		suiv = fgetc(fichier);
 		if (suiv == '=') {
@@ -596,21 +579,20 @@ void lire_special() {
 		else {
 			fseek(fichier, -1, SEEK_CUR);
 			sym_cour.code = ERREUR_TOKEN;
-			Erreur(ERR_CAR_INC);
 			i++;
 			sym_cour.nom[i] = '\0';
 		}
-
 		break;
-
-	}
+}
 
 }
 
 const char* getCodeName(CODES_LEX code) {
 	switch (code)
 	{
+		case ENTRER_TOKEN: return "ENTRER_TOKEN";
 		case FIN_TOKEN: return "FIN_TOKEN";
+		case REPEAT_TOKEN: return "REPEAT_TOKEN";
 		case ELSE_TOKEN: return "ELSE_TOKEN";
 		case IF_TOKEN: return "IF_TOKEN";
 		case WHILE_TOKEN: return "WHILE_TOKEN";
@@ -647,7 +629,7 @@ const char* getCodeName(CODES_LEX code) {
 		case ASSIGN2F_TOKEN: return "ASSIGN2F_TOKEN";
 		case DOLLAR_TOKEN: return "DOLLAR_TOKEN";
 		case TILD_TOKEN: return "TILD_TOKEN";
-
+		case NOT_TOKEN: return "NOT_TOKEN";
 		case _LIBPATHS_TOKEN: return "_LIBPATHS_TOKEN";
 		case ROUND_TOKEN: return "ROUND_TOKEN";
 		case HIST_TOKEN: return "HIST_TOKEN";
@@ -743,7 +725,6 @@ const char* getCodeName(CODES_LEX code) {
 		case FILE_TOKEN: return "FILE_TOKEN";
 		case RUNIF_TOKEN: return "RUNIF_TOKEN";
 		case DUNIF_TOKEN: return "DUNIF_TOKEN";
-
-		default: printf("khikhi\n"); return "salam";
+		default: return "";
 	}
 }
